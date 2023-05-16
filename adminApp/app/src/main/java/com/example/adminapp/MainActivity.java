@@ -15,12 +15,12 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.gson.JsonObject;
 
 import java.util.List;
 
+import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -72,8 +72,8 @@ public class MainActivity extends AppCompatActivity {
             List<ScanResult> scanResults = wifiManager.getScanResults();
             JsonObject data = new JsonObject(); // 새로운 JsonObject 생성
             String ssid = null;
-            String bssid = null;
-            int rssi = 0;
+            String bssid;
+            int rssi;
             for (ScanResult scanResult : scanResults) {
                 ssid = scanResult.SSID;
                 bssid = scanResult.BSSID;
