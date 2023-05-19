@@ -18,6 +18,7 @@ import android.widget.TextView;
 
 import com.google.gson.JsonObject;
 
+import java.io.IOException;
 import java.util.List;
 
 import okhttp3.RequestBody;
@@ -59,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
     public interface ApiService {
-        @POST("api/endpoint/{location}") // API 엔드포인트 설정
+        @POST("store/{location}") // API 엔드포인트 설정
         Call<ResponseBody> sendLocationData(@Path(value = "location") String location, @Body JsonObject data);
     }
 
@@ -87,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
     private void sendLocationDataToServer(JsonObject data) {
                 // Retrofit 인스턴스 생성
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://your-server-url.com/") // 서버 URL 설정
+                .baseUrl("https://finger.yanychoi.site/") // 서버 URL 설정
                 .addConverterFactory(GsonConverterFactory.create()) // JSON 변환기 추가
                 .build();
 
@@ -97,23 +98,25 @@ public class MainActivity extends AppCompatActivity {
         //POST 요청 보내기
         Call<ResponseBody> call = apiService.sendLocationData(location, data);
         scanresult.setText(call.request().toString());
-//        call.enqueue(new Callback<ResponseBody>() {
-//            @Override
-//            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-//                if (response.isSuccessful()) {
-//                    // 요청이 성공적으로 전송된 경우
-//                    // 여기에서 필요한 추가 작업을 수행할 수 있습니다.
-//                } else {
-//                    // 요청이 실패한 경우
-//                    // 여기에서 실패 처리를 수행할 수 있습니다.
-//                }
-//            }
-//
-//            @Override
-//            public void onFailure(Call<ResponseBody> call, Throwable t) {
-//                // 네트워크 오류 등으로 요청이 실패한 경우
-//                // 여기에서 실패 처리를 수행할 수 있습니다.
-//            }
-//        });
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if (response.isSuccessful()) {
+                    // 요청이 성공적으로 전송된 경우
+                    // 여기에서 필요한 추가 작업을 수행할 수 있습니다.
+                    System.out.println(response.headers()+ "tlqkf123");
+                } else {
+                    // 요청이 실패한 경우
+                    // 여기에서 실패 처리를 수행할 수 있습니다.
+                    System.out.println(response.headers() + "tlqkf");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                // 네트워크 오류 등으로 요청이 실패한 경우
+                // 여기에서 실패 처리를 수행할 수 있습니다.
+            }
+        });
     }
 }
