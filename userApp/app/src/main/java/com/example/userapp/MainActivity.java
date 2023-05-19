@@ -6,6 +6,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
@@ -39,27 +40,26 @@ public class MainActivity extends AppCompatActivity {
 
     private WifiManager wifiManager;
     private Timer timer;
-    private Button button;
+    private TextView button;
     private EditText userinput;
     private String destination;
-    private TextView scanresult;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-        button = findViewById(R.id.scan);
-        userinput = findViewById(R.id.userinput);
-        scanresult = findViewById(R.id.scanresult);
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override//버튼 클릭하면
-            public void onClick(View view) {
-                destination = userinput.getText().toString();
-                // Wi-Fi 스캔 시작
-                startTask();
-            }
+        button = findViewById(R.id.main_enter_btn);
+        userinput = findViewById(R.id.main_location_et);
+
+        //버튼 클릭하면
+        button.setOnClickListener(view -> {
+            destination = userinput.getText().toString();
+            // Wi-Fi 스캔 시작
+            startTask();
         });
     }
+
     public interface ApiService {
         @POST("api/endpoint/{destination}") // API 엔드포인트 설정
         Call<ResponseBody> sendLocationData(@Path(value = "destination") String destination, @Body JsonObject data);
@@ -127,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
 
         //POST 요청 보내기
         Call<ResponseBody> call = apiService.sendLocationData(destination, data);
-        scanresult.setText(call.request().toString());
+
         //전송
 //        call.enqueue(new Callback<ResponseBody>() {
 //            @Override
@@ -144,5 +144,9 @@ public class MainActivity extends AppCompatActivity {
 //                // 네트워크 오류 등으로 요청이 실패한 경우
 //            }
 //        });
+
+        Intent intent = new Intent(this, ResultActivity.class);
+        intent.putExtra("result", call.request().toString());
+        startActivity(intent);
     }
 }
