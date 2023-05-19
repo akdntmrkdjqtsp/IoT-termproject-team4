@@ -1,39 +1,79 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    android:orientation="vertical"
-    android:padding="5dp" >
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/main_ai_iv"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="50dp"
+        android:layout_marginTop="160dp"
+        android:adjustViewBounds="true"
+        android:src="@drawable/ai"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintWidth_percent="0.6" />
+
     <TextView
-        android:id="@+id/usertext"
+        android:id="@+id/main_location_tv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:text="LOCATION"
-        android:textSize="20dp" />
-
-    <EditText
-        android:id="@+id/userinput"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/usertext"
-        android:layout_toRightOf="@+id/usertext" />
-
-    <Button
-        android:id="@+id/scan"
-        android:layout_width="100dp"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/usertext"
-        android:layout_marginTop="60dp"
-        android:text="Scan Start" />
+        android:layout_marginTop="20dp"
+        android:text="@string/location"
+        android:textColor="@color/black"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/main_ai_iv" />
 
     <TextView
-        android:id="@+id/scanresult"
-        android:layout_width="match_parent"
-        android:layout_height="400dp"
-        android:layout_below="@+id/scan"
-        android:layout_marginTop="30dp"
-        android:text="scanResult"
-        android:textSize="20dp" />
+        android:id="@+id/main_caution_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:text="@string/caution"
+        android:textColor="@color/black"
+        android:textSize="11sp"
+        android:textStyle="normal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/main_location_tv" />
 
-</RelativeLayout>
+    <EditText
+        android:id="@+id/main_location_et"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:hint="@string/et_hint"
+        android:inputType="number"
+        android:textSize="15sp"
+        android:textColor="@color/black"
+        android:textColorHint="@color/cardview_dark_background"
+        android:background="@drawable/et_bg"
+        android:paddingVertical="12dp"
+        android:paddingHorizontal="15dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/main_caution_tv"
+        app:layout_constraintWidth_percent="0.8" />
+
+    <TextView
+        android:id="@+id/main_enter_btn"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/start_btn_bg"
+        android:gravity="center"
+        android:paddingVertical="15dp"
+        android:text="@string/start"
+        android:textColor="@color/white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/main_location_et"
+        app:layout_constraintWidth_percent="0.8" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

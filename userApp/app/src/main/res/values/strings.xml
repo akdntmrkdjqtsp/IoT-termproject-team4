@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">userApp</string>
+    <string name="location">이동하고자 하는 강의실을 입력해주세요.</string>
+    <string name="caution">강의실 번호만 입력해주시면 됩니다</string>
+    <string name="et_hint">ex) 401 </string>
+    <string name="start">안내 시작</string>
 </resources>
