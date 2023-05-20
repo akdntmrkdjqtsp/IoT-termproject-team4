@@ -24,7 +24,9 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import okhttp3.OkHttpClient;
 import okhttp3.ResponseBody;
+import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -61,12 +63,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public interface ApiService {
-        @POST("api/endpoint/{destination}") // API 엔드포인트 설정
+        @POST("find/{destination} ") // API 엔드포인트 설정
         Call<ResponseBody> sendLocationData(@Path(value = "destination") String destination, @Body JsonObject data);
     }
 
     private void startTask() {
-        // 5초마다 작업 실행
+        // 1초마다 작업 실행
         long intervalMillis = 5000;
 
         timer = new Timer();
@@ -107,8 +109,10 @@ public class MainActivity extends AppCompatActivity {
             for (ScanResult scanResult : scanResults) {
                 ssid = scanResult.SSID;
                 bssid = scanResult.BSSID;
-                rssi = scanResult.level;
+                rssi = (scanResult.level + 100)*2;
+//                if(ssid.contains("GC_free_WiFi")){
                 data.addProperty(bssid, rssi);
+//                }
                 Log.d(TAG, "SSID: " + ssid + ", BSSID: " + bssid + ", rssi: " + rssi);
             }
             sendLocationDataToServer(data);
@@ -116,34 +120,43 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void sendLocationDataToServer(JsonObject data) {
+        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
+        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+        OkHttpClient.Builder httpClientBuilder = new OkHttpClient.Builder();
+        httpClientBuilder.addInterceptor(loggingInterceptor);
+
         // Retrofit 인스턴스 생성
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://your-server-url.com/") // 서버 URL 설정
+                .baseUrl("https://finger.yanychoi.site/") // 서버 URL 설정
+                .client(httpClientBuilder.build())
                 .addConverterFactory(GsonConverterFactory.create()) // JSON 변환기 추가
                 .build();
+
+        JsonObject requestBody = new JsonObject();
+        requestBody.add("signals", data);
 
         // 서비스 인터페이스 생성
         ApiService apiService = retrofit.create(ApiService.class);
 
         //POST 요청 보내기
-        Call<ResponseBody> call = apiService.sendLocationData(destination, data);
+        Call<ResponseBody> call = apiService.sendLocationData(destination, requestBody);
 
         //전송
-//        call.enqueue(new Callback<ResponseBody>() {
-//            @Override
-//            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-//                if (response.isSuccessful()) {
-//                    // 요청이 성공적으로 전송된 경우
-//                } else {
-//                    // 요청이 실패한 경우
-//                }
-//            }
-//
-//            @Override
-//            public void onFailure(Call<ResponseBody> call, Throwable t) {
-//                // 네트워크 오류 등으로 요청이 실패한 경우
-//            }
-//        });
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if (response.isSuccessful()) {
+                    // 요청이 성공적으로 전송된 경우
+                } else {
+                    // 요청이 실패한 경우
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                // 네트워크 오류 등으로 요청이 실패한 경우
+            }
+        });
 
         Intent intent = new Intent(this, ResultActivity.class);
         intent.putExtra("result", call.request().toString());
