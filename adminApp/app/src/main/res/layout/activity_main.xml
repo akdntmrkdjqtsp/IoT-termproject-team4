@@ -9,7 +9,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:text="LOCATION"
+        android:text="현재 위치 입력"
         android:textSize="20dp" />
 
     <EditText
@@ -17,6 +17,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignBaseline="@+id/usertext"
+        android:text="숫자만 입력, ex) 401 "
         android:layout_toRightOf="@+id/usertext" />
 
     <Button
@@ -25,7 +26,17 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/usertext"
         android:layout_marginTop="60dp"
-        android:text="Submit" />
+        android:text="측정" />
+
+    <Button
+        android:id="@+id/train"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/usertext"
+        android:layout_marginLeft="60dp"
+        android:layout_marginTop="60dp"
+        android:layout_toRightOf="@+id/submit"
+        android:text="훈련" />
 
     <TextView
         android:id="@+id/scanresult"
@@ -33,7 +44,7 @@
         android:layout_height="400dp"
         android:layout_below="@+id/submit"
         android:layout_marginTop="30dp"
-        android:text="scanResult"
+        android:text="측정결과"
         android:textSize="20dp" />
 
 </RelativeLayout>

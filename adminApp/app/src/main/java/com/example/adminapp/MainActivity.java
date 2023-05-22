@@ -43,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
     private EditText userinput;
     private String location;
     private TextView scanresult;
+    private Button train;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         button = findViewById(R.id.submit);
+        train = findViewById(R.id.train);
         userinput = findViewById(R.id.userinput);
         scanresult = findViewById(R.id.scanresult);
         button.setOnClickListener(new View.OnClickListener() {
@@ -60,10 +62,22 @@ public class MainActivity extends AppCompatActivity {
                 scanWiFiNetworks();
             }
         });
+
+        train.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                sendTrainToServer();
+            }
+        });
     }
     public interface ApiService {
         @POST("store/{location}") // API 엔드포인트 설정
         Call<ResponseBody> sendLocationData(@Path(value = "location") String location, @Body JsonObject data);
+    }
+
+    public interface ApiTrain {
+        @POST("train") // API 엔드포인트 설정
+        Call<ResponseBody> sendTrainData();
     }
 
     private void scanWiFiNetworks() {
@@ -110,6 +124,55 @@ public class MainActivity extends AppCompatActivity {
         //POST 요청 보내기
         Call<ResponseBody> call = apiService.sendLocationData(location, requestBody);
         scanresult.setText(call.request().toString());
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if (response.isSuccessful()) {
+                    // 요청이 성공적으로 전송된 경우
+                    // 여기에서 필요한 추가 작업을 수행할 수 있습니다.
+                    System.out.println(response.headers()+ " 성공");
+                    try {
+                        System.out.println(response.body().string()+ " 성공");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    // 요청이 실패한 경우
+                    // 여기에서 실패 처리를 수행할 수 있습니다.
+                    System.out.println(response.code() + " 실패");
+                    System.out.println(response + " 실패");
+                    try {
+                        System.out.println(response.body().string()+ " 실패");
+                    } catch (IOException e){
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                // 네트워크 오류 등으로 요청이 실패한 경우
+                // 여기에서 실패 처리를 수행할 수 있습니다.
+            }
+        });
+    }
+
+    private void sendTrainToServer() {
+        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();//이하4줄 &.client()지워야함,그래들도
+        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+        OkHttpClient.Builder httpClientBuilder = new OkHttpClient.Builder();
+        httpClientBuilder.addInterceptor(loggingInterceptor);
+        // Retrofit 인스턴스 생성
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("https://finger.yanychoi.site/") // 서버 URL 설정
+                .client(httpClientBuilder.build())
+                .addConverterFactory(GsonConverterFactory.create()) // JSON 변환기 추가
+                .build();
+
+        ApiTrain apiTrain = retrofit.create(ApiTrain.class);
+
+        //POST 요청 보내기
+        Call<ResponseBody> call = apiTrain.sendTrainData();
         call.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
