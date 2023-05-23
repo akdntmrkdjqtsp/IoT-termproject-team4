@@ -41,7 +41,7 @@ public class ResultActivity extends AppCompatActivity {
 
         wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
 
-        TextView result = findViewById(R.id.result_destination_tv);
+        TextView result = findViewById(R.id.result_tv);
         result.setText(getIntent().getStringExtra("destination"));
         destination = getIntent().getStringExtra("destination");
 

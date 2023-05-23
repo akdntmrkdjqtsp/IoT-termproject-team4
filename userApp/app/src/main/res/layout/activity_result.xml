@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -13,7 +12,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:background="@drawable/next_bg"
+        android:background="@drawable/remain_bg"
         android:padding="10dp"
         android:layout_margin="20dp"
         app:layout_constraintWidth_percent="0.4"
@@ -46,12 +45,12 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:text="@string/end"
-        android:textColor="@color/black"
+        android:textColor="#202020"
         android:textSize="20sp"
         android:textStyle="bold"
         android:padding="10dp"
         android:gravity="center"
-        android:background="@drawable/end_btn_bg"
+        android:background="@drawable/next_bg"
         android:layout_marginHorizontal="20dp"
         app:layout_constraintWidth_percent="0.4"
         app:layout_constraintTop_toTopOf="@id/result_next_ll"
@@ -91,9 +90,9 @@
         android:layout_height="wrap_content"
         android:text="@string/remain_distance"
         android:textColor="@color/white"
-        android:textSize="24sp"
+        android:textSize="23sp"
         android:textStyle="bold"
-        android:background="@drawable/next_bg"
+        android:background="@drawable/remain_bg"
         android:paddingVertical="20dp"
         android:paddingHorizontal="30dp"
         app:layout_constraintWidth_percent="0.7"
@@ -101,6 +100,5 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/result_destination_tv" />
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>
