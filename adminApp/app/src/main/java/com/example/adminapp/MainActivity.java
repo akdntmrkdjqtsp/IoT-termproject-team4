@@ -95,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
                 ssid = scanResult.SSID;
                 bssid = scanResult.BSSID;
                 rssi = (scanResult.level + 100)*2;
-                if(ssid.contains("GC_free_WiFi")){
+                if(ssid.contains("GC_free_WiFi") || ssid.contains("eduroam")){
                     data.addProperty(bssid, rssi);
                 }
 
