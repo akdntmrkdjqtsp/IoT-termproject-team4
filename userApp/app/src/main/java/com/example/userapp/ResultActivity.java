@@ -154,51 +154,33 @@ public class ResultActivity extends AppCompatActivity {
             @Override
             public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
                 // 요청이 성공적으로 전송된 경우
-                if(response.isSuccessful()) {
-                    if(response.body() != null) {
-                        try {
-                            JSONArray jsonArray = new JSONArray(response.body().string());
-                            Log.d("FIND-SUC", jsonArray.toString());
+                if(response.isSuccessful() && response.body() != null) {
+                    try {
+                        JSONArray jsonArray = new JSONArray(response.body().string());
+                        Log.d("FIND-SUC", jsonArray.toString());
 
-                            for(int i = 0; i < jsonArray.length(); i++){
-                                JSONObject cur = (JSONObject) jsonArray.get(i);//인덱스 번호로 접근해서 가져온다.
+                        for(int i = 0; i < jsonArray.length(); i++){
+                            JSONObject cur = (JSONObject) jsonArray.get(i);//인덱스 번호로 접근해서 가져온다.
 
-                                double direction = cur.getDouble("cardinal_direction");
-                                double distance =  cur.getDouble("distance");
+                            double direction = cur.getDouble("cardinal_direction");
+                            double distance =  cur.getDouble("distance");
 
-                                System.out.println("----- "+i+"번째 인덱스 값 -----");
-                                System.out.println("방향 : " + direction);
-                                System.out.println("거리 : " + distance);
+                            System.out.println("----- "+i+"번째 인덱스 값 -----");
+                            System.out.println("방향 : " + direction);
+                            System.out.println("거리 : " + distance);
 
-                                if(i == 0) {
-                                    remain.setText("남은 거리 : " + distance);
+                            if(i == 0) {
+                                remain.setText("남은 거리 : " + distance);
+                                setArrowImg(direction);
 
-                                    if((340 <= direction && direction < 360) || (0 <= direction && direction <= 20)) arrow.setImageResource(R.drawable.ic_up);
-                                    else if (20 < direction && direction < 70) arrow.setImageResource(R.drawable.ic_right_up);
-                                    else if (70 <= direction && direction <= 110) arrow.setImageResource(R.drawable.ic_right);
-                                    else if (110 < direction && direction < 160) arrow.setImageResource(R.drawable.ic_right_down);
-                                    else if (160 <= direction && direction <= 200) arrow.setImageResource(R.drawable.ic_down);
-                                    else if (200 < direction && direction < 250) arrow.setImageResource(R.drawable.ic_left_down);
-                                    else if (250 <= direction && direction <= 290) arrow.setImageResource(R.drawable.ic_left);
-                                    else if (290 < direction && direction < 340) arrow.setImageResource(R.drawable.ic_left_up);
-
-                                } else if(i == 1) {
-                                    nextRemain.setText("남은 거리 : \n" + distance);
-
-                                    if((340 <= direction && direction < 360) || (0 <= direction && direction <= 20)) nextArrow.setImageResource(R.drawable.ic_up_s);
-                                    else if (20 < direction && direction < 70) nextArrow.setImageResource(R.drawable.ic_right_up_s);
-                                    else if (70 <= direction && direction <= 110) nextArrow.setImageResource(R.drawable.ic_right_s);
-                                    else if (110 < direction && direction < 160) nextArrow.setImageResource(R.drawable.ic_right_down_s);
-                                    else if (160 <= direction && direction <= 200) nextArrow.setImageResource(R.drawable.ic_down_s);
-                                    else if (200 < direction && direction < 250) nextArrow.setImageResource(R.drawable.ic_left_down_s);
-                                    else if (250 <= direction && direction <= 290) nextArrow.setImageResource(R.drawable.ic_left_s);
-                                    else if (290 < direction && direction < 340) nextArrow.setImageResource(R.drawable.ic_left_up_s);
-                                }
+                            } else if(i == 1) {
+                                nextRemain.setText("남은 거리 : \n" + distance);
+                                setSmallArrowImg(direction);
                             }
-
-                        } catch (JSONException | IOException e) {
-                            throw new RuntimeException(e);
                         }
+
+                    } catch (JSONException | IOException e) {
+                        throw new RuntimeException(e);
                     }
                 }
             }
@@ -209,5 +191,27 @@ public class ResultActivity extends AppCompatActivity {
                 Log.d("FAIL", t.getMessage());
             }
         });
+    }
+
+    public void setArrowImg(double direction) {
+        if((340 <= direction && direction < 360) || (0 <= direction && direction <= 20)) arrow.setImageResource(R.drawable.ic_up);
+        else if (20 < direction && direction < 70) arrow.setImageResource(R.drawable.ic_right_up);
+        else if (70 <= direction && direction <= 110) arrow.setImageResource(R.drawable.ic_right);
+        else if (110 < direction && direction < 160) arrow.setImageResource(R.drawable.ic_right_down);
+        else if (160 <= direction && direction <= 200) arrow.setImageResource(R.drawable.ic_down);
+        else if (200 < direction && direction < 250) arrow.setImageResource(R.drawable.ic_left_down);
+        else if (250 <= direction && direction <= 290) arrow.setImageResource(R.drawable.ic_left);
+        else if (290 < direction && direction < 340) arrow.setImageResource(R.drawable.ic_left_up);
+    }
+
+    public void setSmallArrowImg(double direction) {
+        if((340 <= direction && direction < 360) || (0 <= direction && direction <= 20)) nextArrow.setImageResource(R.drawable.ic_up_s);
+        else if (20 < direction && direction < 70) nextArrow.setImageResource(R.drawable.ic_right_up_s);
+        else if (70 <= direction && direction <= 110) nextArrow.setImageResource(R.drawable.ic_right_s);
+        else if (110 < direction && direction < 160) nextArrow.setImageResource(R.drawable.ic_right_down_s);
+        else if (160 <= direction && direction <= 200) nextArrow.setImageResource(R.drawable.ic_down_s);
+        else if (200 < direction && direction < 250) nextArrow.setImageResource(R.drawable.ic_left_down_s);
+        else if (250 <= direction && direction <= 290) nextArrow.setImageResource(R.drawable.ic_left_s);
+        else if (290 < direction && direction < 340) nextArrow.setImageResource(R.drawable.ic_left_up_s);
     }
 }
