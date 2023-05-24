@@ -9,13 +9,15 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
+    EditText editText;
+
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         TextView startButton = findViewById(R.id.main_enter_btn);
-        EditText editText = findViewById(R.id.main_location_et);
+        editText = findViewById(R.id.main_location_et);
 
         // 안내 시작 버튼을 클릭하면
         startButton.setOnClickListener(view -> {
@@ -27,5 +29,12 @@ public class MainActivity extends AppCompatActivity {
 
             startActivity(intent);
         });
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        editText.setText("");
     }
 }
