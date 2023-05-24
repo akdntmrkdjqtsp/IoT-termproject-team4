@@ -1,5 +1,7 @@
 package com.example.userapp;
 
+import com.localebro.okhttpprofiler.OkHttpProfilerInterceptor;
+
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
@@ -13,6 +15,9 @@ public class NetworkModule {
         loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
         OkHttpClient.Builder httpClientBuilder = new OkHttpClient.Builder();
         httpClientBuilder.addInterceptor(loggingInterceptor);
+
+        OkHttpProfilerInterceptor interceptor = new OkHttpProfilerInterceptor();
+        httpClientBuilder.addInterceptor(interceptor);
 
         // Retrofit 인스턴스 생성
         retrofit = new Retrofit.Builder()
