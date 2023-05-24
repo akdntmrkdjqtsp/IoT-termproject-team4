@@ -4,4 +4,9 @@
     <string name="caution">강의실 번호만 입력해주시면 됩니다</string>
     <string name="et_hint">ex) 401 </string>
     <string name="start">안내 시작</string>
+
+    <string name="destination">목적지 : </string>
+    <string name="remain_distance">남은 거리 : </string>
+    <string name="next_remain">다음 거리 : \n</string>
+    <string name="end">안내 종료</string>
 </resources>
