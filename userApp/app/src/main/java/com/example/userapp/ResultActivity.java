@@ -1,25 +1,27 @@
 package com.example.userapp;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
+import android.net.wifi.ScanResult;
+import android.net.wifi.WifiManager;
+import android.os.Bundle;
+import android.os.Handler;
+import android.util.Log;
+import android.widget.ImageView;
+import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import android.Manifest;
-import android.annotation.SuppressLint;
-import android.content.Context;
-import android.content.pm.PackageManager;
-import android.net.wifi.ScanResult;
-import android.net.wifi.WifiManager;
-import android.os.Bundle;
-import android.util.Log;
-import android.widget.ImageView;
-import android.widget.TextView;
-
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -42,48 +44,73 @@ public class ResultActivity extends AppCompatActivity {
     private WifiManager wifiManager;
     private Timer timer;
 
-    ImageView nextArrow;
-    TextView nextRemain;
+    private SensorManager sensorManager;
+    private SensorListener sensorListener;
 
-    ImageView arrow;
-    TextView remain;
+    private ImageView nextArrow;
+    private TextView nextRemain;
+    private ImageView arrow;
+    private TextView remain;
 
-    String destination = "";
+    private String destination = "";
+    private double newDirection = 0;
+    private double nextDirection = 0;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_result);
 
+        // 와이파이 측정
         wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+
 
         // 목적지 입력
         TextView result = findViewById(R.id.result_destination_tv);
         result.setText(getIntent().getStringExtra("destination"));
         destination = getIntent().getStringExtra("destination");
 
-        nextArrow = findViewById(R.id.result_next_arrow_iv);
-        nextRemain = findViewById(R.id.result_next_remain_tv);
-
-        arrow = findViewById(R.id.result_arrow_iv);
-        remain = findViewById(R.id.result_remain_tv);
 
         // 화면 기본 세팅
+        nextArrow = findViewById(R.id.result_next_arrow_iv);
+        nextRemain = findViewById(R.id.result_next_remain_tv);
         nextArrow.setImageResource(R.drawable.ic_up_s);
         nextRemain.setText("남은 거리 : \n0");
 
+        arrow = findViewById(R.id.result_arrow_iv);
+        remain = findViewById(R.id.result_remain_tv);
         arrow.setImageResource(R.drawable.ic_up);
         remain.setText("남은 거리 : 0");
+
+        // 방향 측정
+        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+        sensorListener = new SensorListener();
+
+        startSensor();
 
 
         // 안내 종료
         TextView endBtn = findViewById(R.id.result_end_btn);
         endBtn.setOnClickListener(view-> {
             stopTask();
+            stopSensor();
             finish();
         });
 
         startTask();
+    }
+
+    public void startSensor() {
+        Sensor accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        Sensor magnetic = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+
+        sensorManager.registerListener(sensorListener, accelerometer, SensorManager.SENSOR_DELAY_UI);
+        sensorManager.registerListener(sensorListener, magnetic, SensorManager.SENSOR_DELAY_UI);
+    }
+
+    public void stopSensor() {
+        sensorManager.unregisterListener(sensorListener);
     }
 
     private void startTask() {
@@ -107,13 +134,6 @@ public class ResultActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        // 액티비티가 종료될 때 작업 중지
-        stopTask();
-    }
-
     private void scanWiFiNetworks() {
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSIONS_REQUEST_CODE);
@@ -130,16 +150,71 @@ public class ResultActivity extends AppCompatActivity {
                 bssid = scanResult.BSSID;
                 rssi = (scanResult.level + 100)*2;
 
-//                if(ssid.contains("GC_free_WiFi") || ssid.contains("eduroam")){
-//                    data.addProperty(bssid, rssi);
-//                }
+                if(ssid.contains("GC_free_WiFi") || ssid.contains("eduroam")){
+                    data.addProperty(bssid, rssi);
+                }
 
-                data.addProperty(bssid, rssi);
+                // data.addProperty(bssid, rssi);
 
                 Log.d(TAG, "SSID: " + ssid + ", BSSID: " + bssid + ", rssi: " + rssi);
             }
 
             sendLocationDataToServer(data);
+        }
+    }
+
+    class SensorListener implements SensorEventListener {
+        float[] accValue = new float[3];
+        float[] magValue = new float[3];
+
+        boolean isGetAcc = false;
+        boolean isGetMag = false;
+
+        @Override
+        public void onSensorChanged(SensorEvent sensorEvent) {
+            int type = sensorEvent.sensor.getType();
+
+            switch (type) {
+                case Sensor.TYPE_ACCELEROMETER:
+                    System.arraycopy(sensorEvent.values, 0, accValue, 0, sensorEvent.values.length);
+                    isGetAcc = true;
+                    break;
+
+                case Sensor.TYPE_MAGNETIC_FIELD:
+                    System.arraycopy(sensorEvent.values, 0, magValue, 0, sensorEvent.values.length);
+                    isGetMag = true;
+                    break;
+            }
+
+            if(isGetAcc && isGetMag) {
+                float[] R = new float[9];
+                float[] I = new float[9];
+
+                // 행렬 계산
+                SensorManager.getRotationMatrix(R, I, accValue, magValue);
+
+                // 계산한 결과를 방위값으로 환산
+                float[] values = new float[3];
+                SensorManager.getOrientation(R, values);
+
+                // 방위값을 각도 단위로 변경
+                float azimuth = (float) Math.toDegrees(values[0]);  // 방위값
+                float pitch = (float) Math.toDegrees(values[1]);  // 좌우 기울기
+                float roll = (float) Math.toDegrees(values[2]);  // 앞뒤 기울기
+
+                azimuth = azimuth < 0 ? (azimuth + 360) : azimuth;
+                setArrowImg(azimuth - newDirection);
+                setSmallArrowImg(azimuth - nextDirection);
+
+                // azimuth = azimuth == 0 ? 180 : azimuth;
+
+                Log.d("방위각 :", String.valueOf(azimuth));
+            }
+        }
+
+        @Override
+        public void onAccuracyChanged(Sensor sensor, int i) {
+
         }
     }
 
@@ -154,51 +229,35 @@ public class ResultActivity extends AppCompatActivity {
             @Override
             public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
                 // 요청이 성공적으로 전송된 경우
-                if(response.isSuccessful()) {
-                    if(response.body() != null) {
-                        try {
-                            JSONArray jsonArray = new JSONArray(response.body().string());
-                            Log.d("FIND-SUC", jsonArray.toString());
+                if(response.isSuccessful() && response.body() != null) {
+                    try {
+                        JSONArray jsonArray = new JSONArray(response.body().string());
+                        Log.d("FIND-SUC", jsonArray.toString());
 
-                            for(int i = 0; i < jsonArray.length(); i++){
-                                JSONObject cur = (JSONObject) jsonArray.get(i);//인덱스 번호로 접근해서 가져온다.
+                        for(int i = 0; i < jsonArray.length(); i++){
+                            JSONObject cur = (JSONObject) jsonArray.get(i);//인덱스 번호로 접근해서 가져온다.
 
-                                double direction = cur.getDouble("cardinal_direction");
-                                double distance =  cur.getDouble("distance");
+                            double direction = cur.getDouble("cardinal_direction");
+                            double distance =  cur.getDouble("distance");
 
-                                System.out.println("----- "+i+"번째 인덱스 값 -----");
-                                System.out.println("방향 : " + direction);
-                                System.out.println("거리 : " + distance);
+                            System.out.println("----- "+i+"번째 인덱스 값 -----");
+                            System.out.println("방향 : " + direction);
+                            System.out.println("거리 : " + distance);
 
-                                if(i == 0) {
-                                    remain.setText("남은 거리 : " + distance);
+                            if(i == 0) {
+                                remain.setText("남은 거리 : " + distance);
+                                newDirection = direction;
+                                setArrowImg(direction);
 
-                                    if((340 <= direction && direction < 360) || (0 <= direction && direction <= 20)) arrow.setImageResource(R.drawable.ic_up);
-                                    else if (20 < direction && direction < 70) arrow.setImageResource(R.drawable.ic_right_up);
-                                    else if (70 <= direction && direction <= 110) arrow.setImageResource(R.drawable.ic_right);
-                                    else if (110 < direction && direction < 160) arrow.setImageResource(R.drawable.ic_right_down);
-                                    else if (160 <= direction && direction <= 200) arrow.setImageResource(R.drawable.ic_down);
-                                    else if (200 < direction && direction < 250) arrow.setImageResource(R.drawable.ic_left_down);
-                                    else if (250 <= direction && direction <= 290) arrow.setImageResource(R.drawable.ic_left);
-                                    else if (290 < direction && direction < 340) arrow.setImageResource(R.drawable.ic_left_up);
-
-                                } else if(i == 1) {
-                                    nextRemain.setText("남은 거리 : \n" + distance);
-
-                                    if((340 <= direction && direction < 360) || (0 <= direction && direction <= 20)) nextArrow.setImageResource(R.drawable.ic_up_s);
-                                    else if (20 < direction && direction < 70) nextArrow.setImageResource(R.drawable.ic_right_up_s);
-                                    else if (70 <= direction && direction <= 110) nextArrow.setImageResource(R.drawable.ic_right_s);
-                                    else if (110 < direction && direction < 160) nextArrow.setImageResource(R.drawable.ic_right_down_s);
-                                    else if (160 <= direction && direction <= 200) nextArrow.setImageResource(R.drawable.ic_down_s);
-                                    else if (200 < direction && direction < 250) nextArrow.setImageResource(R.drawable.ic_left_down_s);
-                                    else if (250 <= direction && direction <= 290) nextArrow.setImageResource(R.drawable.ic_left_s);
-                                    else if (290 < direction && direction < 340) nextArrow.setImageResource(R.drawable.ic_left_up_s);
-                                }
+                            } else if(i == 1) {
+                                nextRemain.setText("남은 거리 : \n" + distance);
+                                nextDirection = direction;
+                                setSmallArrowImg(direction);
                             }
-
-                        } catch (JSONException | IOException e) {
-                            throw new RuntimeException(e);
                         }
+
+                    } catch (JSONException | IOException e) {
+                        throw new RuntimeException(e);
                     }
                 }
             }
@@ -209,5 +268,35 @@ public class ResultActivity extends AppCompatActivity {
                 Log.d("FAIL", t.getMessage());
             }
         });
+    }
+
+    public void setArrowImg(double direction) {
+        if((340 <= direction && direction < 360) || (0 <= direction && direction <= 20)) arrow.setImageResource(R.drawable.ic_up);
+        else if (20 < direction && direction < 70) arrow.setImageResource(R.drawable.ic_right_up);
+        else if (70 <= direction && direction <= 110) arrow.setImageResource(R.drawable.ic_right);
+        else if (110 < direction && direction < 160) arrow.setImageResource(R.drawable.ic_right_down);
+        else if (160 <= direction && direction <= 200) arrow.setImageResource(R.drawable.ic_down);
+        else if (200 < direction && direction < 250) arrow.setImageResource(R.drawable.ic_left_down);
+        else if (250 <= direction && direction <= 290) arrow.setImageResource(R.drawable.ic_left);
+        else if (290 < direction && direction < 340) arrow.setImageResource(R.drawable.ic_left_up);
+    }
+
+    public void setSmallArrowImg(double direction) {
+        if((340 <= direction && direction < 360) || (0 <= direction && direction <= 20)) nextArrow.setImageResource(R.drawable.ic_up_s);
+        else if (20 < direction && direction < 70) nextArrow.setImageResource(R.drawable.ic_right_up_s);
+        else if (70 <= direction && direction <= 110) nextArrow.setImageResource(R.drawable.ic_right_s);
+        else if (110 < direction && direction < 160) nextArrow.setImageResource(R.drawable.ic_right_down_s);
+        else if (160 <= direction && direction <= 200) nextArrow.setImageResource(R.drawable.ic_down_s);
+        else if (200 < direction && direction < 250) nextArrow.setImageResource(R.drawable.ic_left_down_s);
+        else if (250 <= direction && direction <= 290) nextArrow.setImageResource(R.drawable.ic_left_s);
+        else if (290 < direction && direction < 340) nextArrow.setImageResource(R.drawable.ic_left_up_s);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // 액티비티가 종료될 때 작업 중지
+        stopTask();
+        stopSensor();
     }
 }
