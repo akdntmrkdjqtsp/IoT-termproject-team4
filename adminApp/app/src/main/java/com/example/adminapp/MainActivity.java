@@ -36,7 +36,7 @@ import retrofit2.http.Path;
 
 public class MainActivity extends AppCompatActivity {
     private static final int PERMISSIONS_REQUEST_CODE = 1;
-    //private static final String TAG = "WiFiScanner";
+    private static final String TAG = "WiFiScanner";
 
     private WifiManager wifiManager;
     private Button button;
@@ -59,7 +59,12 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 location = userinput.getText().toString();
                 // Wi-Fi 스캔 시작
-                scanWiFiNetworks();
+                try {
+                    scanWiFiNetworks();
+                }
+                catch (Exception e) {
+                    System.out.println("Not working.");
+                }
             }
         });
 
@@ -80,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
         Call<ResponseBody> sendTrainData();
     }
 
-    private void scanWiFiNetworks() {
+    private void scanWiFiNetworks() throws Exception {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSIONS_REQUEST_CODE);
         }
@@ -94,11 +99,14 @@ public class MainActivity extends AppCompatActivity {
             for (ScanResult scanResult : scanResults) {
                 ssid = scanResult.SSID;
                 bssid = scanResult.BSSID;
-                rssi = (scanResult.level + 100)*2;
+                rssi = (scanResult.level + 100) * 2;
                 if(ssid.contains("GC_free_WiFi") || ssid.contains("eduroam")){
                     data.addProperty(bssid, rssi);
+                    Log.d(TAG, "SSID: " + ssid + ", BSSID: " + bssid + ", rssi: " + rssi);
                 }
-
+            }
+            if (scanResults.isEmpty()) {
+                throw new Exception("no APs found.");
             }
             sendLocationDataToServer(data);
         }

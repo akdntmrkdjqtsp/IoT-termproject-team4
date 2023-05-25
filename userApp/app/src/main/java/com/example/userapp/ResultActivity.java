@@ -115,7 +115,7 @@ public class ResultActivity extends AppCompatActivity {
 
     private void startTask() {
         // 1초마다 작업 실행
-        long intervalMillis = 5000;
+        long intervalMillis = 1000;
 
         timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask() {
@@ -202,13 +202,17 @@ public class ResultActivity extends AppCompatActivity {
                 float pitch = (float) Math.toDegrees(values[1]);  // 좌우 기울기
                 float roll = (float) Math.toDegrees(values[2]);  // 앞뒤 기울기
 
+                if(String.valueOf(azimuth).equals("-0.0")) azimuth = 0;
+                else if(String.valueOf(azimuth).equals("0.0")) azimuth = 180;
+
+                Log.d("방위각 :", String.valueOf(azimuth));
+
                 azimuth = azimuth < 0 ? (azimuth + 360) : azimuth;
                 setArrowImg(azimuth - newDirection);
-                setSmallArrowImg(azimuth - nextDirection);
 
                 // azimuth = azimuth == 0 ? 180 : azimuth;
 
-                Log.d("방위각 :", String.valueOf(azimuth));
+                // Log.d("방위각 :", String.valueOf(azimuth));
             }
         }
 
