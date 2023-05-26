@@ -17,7 +17,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignBaseline="@+id/usertext"
-        android:text="숫자만 입력, ex) 401 "
+        android:hint="숫자만 입력, ex) 401 "
         android:layout_toRightOf="@+id/usertext" />
 
     <Button
