@@ -49,7 +49,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:hint="@string/et_hint"
-        android:inputType="number"
+        android:inputType="text"
         android:textSize="15sp"
         android:textColor="#202020"
         android:textColorHint="@color/cardview_dark_background"

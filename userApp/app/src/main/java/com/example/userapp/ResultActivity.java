@@ -150,11 +150,11 @@ public class ResultActivity extends AppCompatActivity {
                 bssid = scanResult.BSSID;
                 rssi = (scanResult.level + 100)*2;
 
-                if(ssid.contains("GC_free_WiFi") || ssid.contains("eduroam")){
-                    data.addProperty(bssid, rssi);
-                }
+//                if(ssid.contains("GC_free_WiFi") || ssid.contains("eduroam")){
+//                    data.addProperty(bssid, rssi);
+//                }
 
-                // data.addProperty(bssid, rssi);
+                data.addProperty(bssid, rssi);
 
                 Log.d(TAG, "SSID: " + ssid + ", BSSID: " + bssid + ", rssi: " + rssi);
             }
@@ -205,14 +205,12 @@ public class ResultActivity extends AppCompatActivity {
                 if(String.valueOf(azimuth).equals("-0.0")) azimuth = 0;
                 else if(String.valueOf(azimuth).equals("0.0")) azimuth = 180;
 
-                Log.d("방위각 :", String.valueOf(azimuth));
+                // Log.d("방위각 :", String.valueOf(azimuth));
 
                 azimuth = azimuth < 0 ? (azimuth + 360) : azimuth;
                 setArrowImg(azimuth - newDirection);
 
                 // azimuth = azimuth == 0 ? 180 : azimuth;
-
-                // Log.d("방위각 :", String.valueOf(azimuth));
             }
         }
 
