@@ -208,7 +208,7 @@ public class ResultActivity extends AppCompatActivity {
                 // Log.d("방위각 :", String.valueOf(azimuth));
 
                 azimuth = azimuth < 0 ? (azimuth + 360) : azimuth;
-                setArrowImg(azimuth - newDirection);
+                setArrowImg(360 - (azimuth - newDirection));
 
                 // azimuth = azimuth == 0 ? 180 : azimuth;
             }
