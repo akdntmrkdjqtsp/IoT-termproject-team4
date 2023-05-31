@@ -21,7 +21,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -47,6 +49,9 @@ public class ResultActivity extends AppCompatActivity {
     private SensorManager sensorManager;
     private SensorListener sensorListener;
 
+    private TextView start;
+    private TextView end;
+
     private ImageView nextArrow;
     private TextView nextRemain;
     private ImageView arrow;
@@ -67,8 +72,9 @@ public class ResultActivity extends AppCompatActivity {
 
 
         // 목적지 입력
-        TextView result = findViewById(R.id.result_destination_tv);
-        result.setText(getIntent().getStringExtra("destination"));
+        start = findViewById(R.id.result_start_tv);
+        end = findViewById(R.id.result_destination_tv);
+        end.setText("도착지: " + getIntent().getStringExtra("destination"));
         destination = getIntent().getStringExtra("destination");
 
 
@@ -156,6 +162,7 @@ public class ResultActivity extends AppCompatActivity {
 
                 data.addProperty(bssid, rssi);
 
+                // 414 : SSID: AndroidWifi, BSSID: 00:13:10:85:fe:01, rssi: 100
                 Log.d(TAG, "SSID: " + ssid + ", BSSID: " + bssid + ", rssi: " + rssi);
             }
 
@@ -210,7 +217,6 @@ public class ResultActivity extends AppCompatActivity {
                 azimuth = azimuth < 0 ? (azimuth + 360) : azimuth;
                 setArrowImg(360 - (azimuth - newDirection));
 
-                // azimuth = azimuth == 0 ? 180 : azimuth;
             }
         }
 
@@ -233,14 +239,39 @@ public class ResultActivity extends AppCompatActivity {
                 // 요청이 성공적으로 전송된 경우
                 if(response.isSuccessful() && response.body() != null) {
                     try {
-                        JSONArray jsonArray = new JSONArray(response.body().string());
-                        Log.d("FIND-SUC", jsonArray.toString());
+                        JSONObject object = new JSONObject(response.body().string());
 
+                        Log.d("FIND-SUC", object.toString());
+
+                        int startPt = object.getInt("start");
+                        int endPt =  object.getInt("end");
+
+                        start.setText("출발지: " + startPt);
+                        end.setText("목적지: " + endPt);
+
+                        JSONArray jsonArray = object.getJSONArray("path");
                         for(int i = 0; i < jsonArray.length(); i++){
                             JSONObject cur = (JSONObject) jsonArray.get(i);//인덱스 번호로 접근해서 가져온다.
 
-                            double direction = cur.getDouble("cardinal_direction");
-                            double distance =  cur.getDouble("distance");
+                            /*
+                            {
+                              "start": "409",
+                              "end": "426",
+                              "path": [
+                                {
+                                  "cardinal_direction": "20",
+                                  "distance": "20.0"
+                                },
+                                {
+                                  "cardinal_direction": "230",
+                                  "distance": "83.0"
+                                }
+                              ]
+                            }
+                             */
+
+                            int direction = cur.getInt("cardinal_direction");
+                            int distance =  cur.getInt("distance");
 
                             System.out.println("----- "+i+"번째 인덱스 값 -----");
                             System.out.println("방향 : " + direction);
