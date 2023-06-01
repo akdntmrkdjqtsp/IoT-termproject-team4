@@ -160,11 +160,11 @@ public class ResultActivity extends AppCompatActivity {
                 bssid = scanResult.BSSID;
                 rssi = (scanResult.level + 100)*2;
 
-//                if(ssid.contains("GC_free_WiFi") || ssid.contains("eduroam")){
-//                    data.addProperty(bssid, rssi);
-//                }
+                if(ssid.contains("GC_free_WiFi") || ssid.contains("eduroam")){
+                    data.addProperty(bssid, rssi);
+                }
 
-                data.addProperty(bssid, rssi);
+                // data.addProperty(bssid, rssi);
 
                 // 414 : SSID: AndroidWifi, BSSID: 00:13:10:85:fe:01, rssi: 100
                 Log.d(TAG, "SSID: " + ssid + ", BSSID: " + bssid + ", rssi: " + rssi);
