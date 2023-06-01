@@ -117,8 +117,8 @@ public class ResultActivity extends AppCompatActivity {
         Sensor accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         Sensor magnetic = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 
-        sensorManager.registerListener(sensorListener, accelerometer, SensorManager.SENSOR_DELAY_UI);
-        sensorManager.registerListener(sensorListener, magnetic, SensorManager.SENSOR_DELAY_UI);
+        sensorManager.registerListener(sensorListener, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+        sensorManager.registerListener(sensorListener, magnetic, SensorManager.SENSOR_DELAY_NORMAL);
     }
 
     public void stopSensor() {
@@ -170,15 +170,23 @@ public class ResultActivity extends AppCompatActivity {
 
                 if(ssid.contains("GC_free_WiFi") || ssid.contains("eduroam")){
                     data.addProperty(bssid, rssi);
+                    String finalBssid = bssid;
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            TextView debug = findViewById(R.id.debug);
+                            debug.setText(finalBssid);
+                        }
+                    });
+
+                    Log.d(TAG, "SSID: " + ssid + ", BSSID: " + bssid + ", rssi: " + rssi);
+
+                    sendLocationDataToServer(data);
                 }
 
                 // data.addProperty(bssid, rssi);
-
                 // 414 : SSID: AndroidWifi, BSSID: 00:13:10:85:fe:01, rssi: 100
-                Log.d(TAG, "SSID: " + ssid + ", BSSID: " + bssid + ", rssi: " + rssi);
             }
-
-            sendLocationDataToServer(data);
         }
     }
 
@@ -258,6 +266,8 @@ public class ResultActivity extends AppCompatActivity {
                         int startPt = object.getInt("start");
                         int endPt =  object.getInt("end");
 
+                        Log.d("start, end", startPt + " " + endPt);
+
                         if(first) {
                             start.setText("출발지: " + startPt);
                             first = false;
@@ -267,6 +277,13 @@ public class ResultActivity extends AppCompatActivity {
                         end.setText("목적지: " + endPt);
 
                         JSONArray jsonArray = object.getJSONArray("path");
+
+                        if(jsonArray.length() == 0) {
+                            remain.setText("목적지에 도착했습니다.");
+                            stopSensor();
+                            stopTask();
+                        }
+
                         for(int i = 0; i < jsonArray.length(); i++){
                             JSONObject cur = (JSONObject) jsonArray.get(i);//인덱스 번호로 접근해서 가져온다.
 
@@ -298,7 +315,6 @@ public class ResultActivity extends AppCompatActivity {
                                 remain.setText("남은 거리 : " + distance);
                                 newDirection = direction;
                                 setArrowImg(direction);
-
                             } else if(i == 1) {
                                 nextRemain.setText("남은 거리 : \n" + distance);
                                 nextDirection = direction;
@@ -307,7 +323,7 @@ public class ResultActivity extends AppCompatActivity {
                         }
 
                     } catch (JSONException | IOException e) {
-                        throw new RuntimeException(e);
+                        System.out.println("API 연결에 실패했습니다.");
                     }
                 }
             }
