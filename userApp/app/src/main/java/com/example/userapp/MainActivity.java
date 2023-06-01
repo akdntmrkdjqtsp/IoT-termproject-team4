@@ -23,11 +23,13 @@ public class MainActivity extends AppCompatActivity {
         startButton.setOnClickListener(view -> {
             String destination = editText.getText().toString();
 
-            // 네비게이션 화면으로 넘어감
-            Intent intent = new Intent(getApplicationContext(), ResultActivity.class);
-            intent.putExtra("destination", destination);
+            if(!destination.isEmpty()) {
+                // 네비게이션 화면으로 넘어감
+                Intent intent = new Intent(getApplicationContext(), ResultActivity.class);
+                intent.putExtra("destination", destination);
 
-            startActivity(intent);
+                startActivity(intent);
+            }
         });
     }
 
