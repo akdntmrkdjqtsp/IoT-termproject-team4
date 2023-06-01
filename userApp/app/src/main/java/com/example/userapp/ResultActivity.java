@@ -15,7 +15,7 @@ import android.os.Handler;
 import android.util.Log;
 import android.widget.ImageView;
 import android.widget.TextView;
-
+import java.util.concurrent.TimeUnit;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -33,6 +33,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -48,7 +50,7 @@ public class ResultActivity extends AppCompatActivity {
 
     private SensorManager sensorManager;
     private SensorListener sensorListener;
-
+    private ScheduledExecutorService scheduledExecutor;
     private TextView start;
     private TextView current;
     private TextView end;
@@ -126,21 +128,27 @@ public class ResultActivity extends AppCompatActivity {
     private void startTask() {
         // 1초마다 작업 실행
         long intervalMillis = 1000;
-
-        timer = new Timer();
-        timer.scheduleAtFixedRate(new TimerTask() {
+        scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
+        scheduledExecutor.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
-                //작업 실행
+                // 작업 실행
                 scanWiFiNetworks();
             }
-        }, 0, intervalMillis);
+        }, 0, intervalMillis, TimeUnit.MILLISECONDS);
     }
 
     private void stopTask() {
-        if (timer != null) {
-            timer.cancel();
-            timer = null;
+        if (scheduledExecutor != null) {
+            scheduledExecutor.shutdown();
+            try {
+                if (!scheduledExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+                    scheduledExecutor.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                scheduledExecutor.shutdownNow();
+            }
+            scheduledExecutor = null;
         }
     }
 
