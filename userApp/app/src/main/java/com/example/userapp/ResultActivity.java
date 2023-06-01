@@ -50,6 +50,7 @@ public class ResultActivity extends AppCompatActivity {
     private SensorListener sensorListener;
 
     private TextView start;
+    private TextView current;
     private TextView end;
 
     private ImageView nextArrow;
@@ -61,6 +62,7 @@ public class ResultActivity extends AppCompatActivity {
     private double newDirection = 0;
     private double nextDirection = 0;
 
+    private boolean first = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,7 +75,9 @@ public class ResultActivity extends AppCompatActivity {
 
         // 목적지 입력
         start = findViewById(R.id.result_start_tv);
+        current = findViewById(R.id.result_now_tv);
         end = findViewById(R.id.result_destination_tv);
+
         end.setText("도착지: " + getIntent().getStringExtra("destination"));
         destination = getIntent().getStringExtra("destination");
 
@@ -156,11 +160,11 @@ public class ResultActivity extends AppCompatActivity {
                 bssid = scanResult.BSSID;
                 rssi = (scanResult.level + 100)*2;
 
-//                if(ssid.contains("GC_free_WiFi") || ssid.contains("eduroam")){
-//                    data.addProperty(bssid, rssi);
-//                }
+                if(ssid.contains("GC_free_WiFi") || ssid.contains("eduroam")){
+                    data.addProperty(bssid, rssi);
+                }
 
-                data.addProperty(bssid, rssi);
+                // data.addProperty(bssid, rssi);
 
                 // 414 : SSID: AndroidWifi, BSSID: 00:13:10:85:fe:01, rssi: 100
                 Log.d(TAG, "SSID: " + ssid + ", BSSID: " + bssid + ", rssi: " + rssi);
@@ -246,7 +250,12 @@ public class ResultActivity extends AppCompatActivity {
                         int startPt = object.getInt("start");
                         int endPt =  object.getInt("end");
 
-                        start.setText("출발지: " + startPt);
+                        if(first) {
+                            start.setText("출발지: " + startPt);
+                            first = false;
+                        }
+
+                        current.setText("현 위치: " + startPt);
                         end.setText("목적지: " + endPt);
 
                         JSONArray jsonArray = object.getJSONArray("path");
