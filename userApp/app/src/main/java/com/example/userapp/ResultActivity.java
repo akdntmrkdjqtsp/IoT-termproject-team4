@@ -220,6 +220,12 @@ public class ResultActivity extends AppCompatActivity {
                 // 행렬 계산
                 SensorManager.getRotationMatrix(R, I, accValue, magValue);
 
+                if (magValue[0] > 40.0f) {
+                    // 지나치게 강한 주변 자기장으로 인해 방위가 왜곡됨.
+                    // calibration을 할 수 있도록 핸드폰을 roll, pitch, yaw 3방향 모두 회전시키도록 유도하고 이후 다시 측정
+                    
+                }
+
                 // 계산한 결과를 방위값으로 환산
                 float[] values = new float[3];
                 SensorManager.getOrientation(R, values);
