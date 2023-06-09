@@ -320,8 +320,8 @@ public class ResultActivity extends AppCompatActivity {
                         System.out.println("API 연결에 실패했습니다.");
                     }
 
+                    // 1초 후에 다시 API를 호출
                     Handler handler = new Handler(Looper.getMainLooper());
-
                     handler.postDelayed(scanWiFiNetworks(), 1000);
                 }
             }
@@ -330,6 +330,10 @@ public class ResultActivity extends AppCompatActivity {
             public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
                 // 네트워크 오류 등으로 요청이 실패한 경우
                 Log.d("FAIL", t.getMessage());
+
+                // 1초 후에 다시 API를 호출
+                Handler handler = new Handler(Looper.getMainLooper());
+                handler.postDelayed(scanWiFiNetworks(), 1000);
             }
         });
     }
