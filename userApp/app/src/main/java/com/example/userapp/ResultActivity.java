@@ -60,7 +60,6 @@ public class ResultActivity extends AppCompatActivity {
     private ImageView arrow;
     private TextView remain;
 
-    private String destination = "";
     private String destinationAPI = "";
 
     private double newDirection = 0;
@@ -79,26 +78,26 @@ public class ResultActivity extends AppCompatActivity {
 
 
         // 목적지 입력
-        start = findViewById(R.id.result_start_tv);
-        current = findViewById(R.id.result_now_tv);
-        end = findViewById(R.id.result_destination_tv);
+        start = findViewById(R.id.result_start_real_tv);
+        current = findViewById(R.id.result_now_real_tv);
+        end = findViewById(R.id.result_destination_real_tv);
 
-        destination = getIntent().getStringExtra("destination");
+        String destination = getIntent().getStringExtra("destination");
         destinationAPI = getIntent().getStringExtra("destinationAPI");
 
-        end.setText("도착지: " + getIntent().getStringExtra("destination"));
+        end.setText(destination);
 
 
         // 화면 기본 세팅
         nextArrow = findViewById(R.id.result_next_arrow_iv);
         nextRemain = findViewById(R.id.result_next_remain_tv);
         nextArrow.setImageResource(R.drawable.ic_up_s);
-        nextRemain.setText("남은 거리 : \n0");
+        nextRemain.setText("남은 거리 :\n0m");
 
         arrow = findViewById(R.id.result_arrow_iv);
         remain = findViewById(R.id.result_remain_tv);
         arrow.setImageResource(R.drawable.ic_up);
-        remain.setText("남은 거리 : 0");
+        remain.setText("남은 거리 : 0m");
 
         // 방향 측정
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
@@ -266,18 +265,19 @@ public class ResultActivity extends AppCompatActivity {
 
                         Log.d("FIND-SUC", object.toString());
 
-                        int startPt = object.getInt("start");
-                        int endPt =  object.getInt("end");
+                        String startPt = object.getString("start");
+                        String endPt =  object.getString("end");
 
                         Log.d("start, end", startPt + " " + endPt);
 
+                        startPt = getClassroom(startPt);
+
                         if(first) {
-                            start.setText("출발지: " + startPt);
+                            start.setText(startPt);
                             first = false;
                         }
 
-                        current.setText("현 위치: " + startPt);
-                        end.setText("목적지: " + endPt);
+                        current.setText(startPt);
 
                         JSONArray jsonArray = object.getJSONArray("path");
 
@@ -315,11 +315,11 @@ public class ResultActivity extends AppCompatActivity {
                             System.out.println("거리 : " + distance);
 
                             if(i == 0) {
-                                remain.setText("남은 거리 : " + distance);
+                                remain.setText("남은 거리 : " + distance + "m");
                                 newDirection = direction;
                                 setArrowImg(direction);
                             } else if(i == 1) {
-                                nextRemain.setText("남은 거리 : \n" + distance);
+                                nextRemain.setText("남은 거리 : \n" + distance + "m");
                                 nextDirection = direction;
                                 setSmallArrowImg(direction);
                             }
@@ -337,6 +337,34 @@ public class ResultActivity extends AppCompatActivity {
                 Log.d("FAIL", t.getMessage());
             }
         });
+    }
+
+    private String getClassroom(String startPt) {
+        /*
+        ['401', '402', '403', '404', '405', '405hall', '406', '407', '407A', '407hall', '408', '409', '410',
+        '411', '412', '413', '414', '415', '416', '417', '418', '419', '420',
+        '421', '422', '423', '424', '425', '426', '427', '428', '429', '430',
+        '431', '432', '433', '434', '435', '501', '502', '503', '504', '505', '505hall', '506', '507', '507A', '507hall', '508', '509', '510',
+        '511', '512', '513', '514', '515', '516', '517', '518', '519', '520',
+        '521', '522', '523', '524', '525', '526', '527', '528', '529', '530',
+        '531', '532',
+        'artechne-4', 'artechne-5',
+        'bathroom_a', 'bathroom_a-5', 'bathroom_b', 'bathroom_b-5', 'bathroom_c', 'bathroom_c-5',
+        'cube',
+        'elevator-1', 'elevator-2', 'elevator-3', 'elevator-4',
+        'stair-1', 'stair-2', 'stair-2-5', 'stair-3', 'stair-4', 'stair-5']
+         */
+
+        if(startPt.length() == 3) startPt += "호";  // 일반 강의실의 경우 ~호 형태로 변환
+        else if(startPt.contains("hall")) startPt = startPt.replace("hall", "-A");
+        else if(startPt.equals("artechne-4")) startPt = "4층 아르테크네";
+        else if(startPt.equals("artechne-5")) startPt = "5층 아르테크네";
+        else if(startPt.equals("cube")) startPt = "큐브";
+        else if(startPt.contains("bathroom")) startPt = "화장실";
+        else if(startPt.contains("elevator")) startPt = "엘레베이터";
+        else if(startPt.contains("stair")) startPt = "계단";
+
+        return startPt;
     }
 
     public void setArrowImg(double direction) {
