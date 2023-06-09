@@ -12,6 +12,7 @@ import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -21,9 +22,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -32,7 +31,6 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.List;
 import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -112,7 +110,7 @@ public class ResultActivity extends AppCompatActivity {
         });
 
         startSensor();
-        startTask();
+        scanWiFiNetworks();
     }
 
     public void startSensor() {
@@ -154,7 +152,7 @@ public class ResultActivity extends AppCompatActivity {
         }
     }
 
-    private void scanWiFiNetworks() {
+    private Runnable scanWiFiNetworks() {
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSIONS_REQUEST_CODE);
         }
@@ -172,15 +170,6 @@ public class ResultActivity extends AppCompatActivity {
 
                 if(ssid.contains("GC_free_WiFi") || ssid.contains("eduroam")){
                     data.addProperty(bssid, rssi);
-                    String finalBssid = bssid;
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            TextView debug = findViewById(R.id.debug);
-                            debug.setText(finalBssid);
-                        }
-                    });
-
                     Log.d(TAG, "SSID: " + ssid + ", BSSID: " + bssid + ", rssi: " + rssi);
 
                     sendLocationDataToServer(data);
@@ -190,6 +179,8 @@ public class ResultActivity extends AppCompatActivity {
                 // 414 : SSID: AndroidWifi, BSSID: 00:13:10:85:fe:01, rssi: 100
             }
         }
+
+        return null;
     }
 
     class SensorListener implements SensorEventListener {
@@ -328,6 +319,10 @@ public class ResultActivity extends AppCompatActivity {
                     } catch (JSONException | IOException e) {
                         System.out.println("API 연결에 실패했습니다.");
                     }
+
+                    Handler handler = new Handler(Looper.getMainLooper());
+
+                    handler.postDelayed(scanWiFiNetworks(), 1000);
                 }
             }
 
