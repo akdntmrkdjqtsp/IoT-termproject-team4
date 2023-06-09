@@ -104,7 +104,7 @@ public class ResultActivity extends AppCompatActivity {
         // 안내 종료
         TextView endBtn = findViewById(R.id.result_end_btn);
         endBtn.setOnClickListener(view-> {
-            stopTask();
+            // stopTask();
             stopSensor();
             finish();
         });
@@ -254,6 +254,23 @@ public class ResultActivity extends AppCompatActivity {
                     try {
                         JSONObject object = new JSONObject(response.body().string());
 
+                        /*
+                        {
+                          "start": "409",
+                          "end": "426",
+                          "path": [
+                            {
+                              "cardinal_direction": "20",
+                              "distance": "20"
+                            },
+                            {
+                              "cardinal_direction": "230",
+                              "distance": "83"
+                            }
+                          ]
+                        }
+                         */
+
                         Log.d("FIND-SUC", object.toString());
 
                         String startPt = object.getString("start");
@@ -275,28 +292,11 @@ public class ResultActivity extends AppCompatActivity {
                         if(jsonArray.length() == 0) {
                             remain.setText("목적지에 도착했습니다.");
                             stopSensor();
-                            stopTask();
+                            // stopTask();
                         }
 
                         for(int i = 0; i < jsonArray.length(); i++){
                             JSONObject cur = (JSONObject) jsonArray.get(i);//인덱스 번호로 접근해서 가져온다.
-
-                            /*
-                            {
-                              "start": "409",
-                              "end": "426",
-                              "path": [
-                                {
-                                  "cardinal_direction": "20",
-                                  "distance": "20.0"
-                                },
-                                {
-                                  "cardinal_direction": "230",
-                                  "distance": "83.0"
-                                }
-                              ]
-                            }
-                             */
 
                             int direction = cur.getInt("cardinal_direction");
                             int distance =  cur.getInt("distance");
