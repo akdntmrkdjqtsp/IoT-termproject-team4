@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="classroom">
+        <item>405호</item>
+        <item>412호</item>
+        <item>418호</item>
+        <item>433호</item>
+        <item>4층 아르테크네</item>
+        <item>505호</item>
+        <item>512호</item>
+        <item>520호</item>
+        <item>531호</item>
+        <item>5층 아르테크네</item>
+    </string-array>
+</resources>
+
+<!--405 412 433 418 4층 아르테크네
+505 512 531 520 5층 아르테크네 -->

@@ -61,11 +61,14 @@ public class ResultActivity extends AppCompatActivity {
     private TextView remain;
 
     private String destination = "";
+    private String destinationAPI = "";
+
     private double newDirection = 0;
     private double nextDirection = 0;
 
     private boolean first = true;
 
+    @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -80,8 +83,10 @@ public class ResultActivity extends AppCompatActivity {
         current = findViewById(R.id.result_now_tv);
         end = findViewById(R.id.result_destination_tv);
 
-        end.setText("도착지: " + getIntent().getStringExtra("destination"));
         destination = getIntent().getStringExtra("destination");
+        destinationAPI = getIntent().getStringExtra("destinationAPI");
+
+        end.setText("도착지: " + getIntent().getStringExtra("destination"));
 
 
         // 화면 기본 세팅
@@ -99,9 +104,6 @@ public class ResultActivity extends AppCompatActivity {
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         sensorListener = new SensorListener();
 
-        startSensor();
-
-
         // 안내 종료
         TextView endBtn = findViewById(R.id.result_end_btn);
         endBtn.setOnClickListener(view-> {
@@ -110,6 +112,7 @@ public class ResultActivity extends AppCompatActivity {
             finish();
         });
 
+        startSensor();
         startTask();
     }
 
@@ -252,7 +255,7 @@ public class ResultActivity extends AppCompatActivity {
 
         // 서비스 인터페이스 생성
         API apiService = NetworkModule.getRestrofit().create(API.class);
-        apiService.sendLocationData(destination, requestBody).enqueue(new Callback<ResponseBody>() {
+        apiService.sendLocationData(destinationAPI, requestBody).enqueue(new Callback<ResponseBody>() {
             @SuppressLint("SetTextI18n")
             @Override
             public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
