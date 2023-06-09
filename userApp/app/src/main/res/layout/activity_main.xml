@@ -43,8 +43,8 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/main_location_tv" />
 
-    <EditText
-        android:id="@+id/main_location_et"
+    <androidx.appcompat.widget.AppCompatSpinner
+        android:id="@+id/main_location_sp"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
@@ -52,10 +52,6 @@
         android:inputType="text"
         android:textSize="15sp"
         android:textColor="#202020"
-        android:textColorHint="@color/cardview_dark_background"
-        android:background="@drawable/et_bg"
-        android:paddingVertical="12dp"
-        android:paddingHorizontal="15dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/main_caution_tv"
@@ -73,7 +69,7 @@
         android:textColor="@color/white"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/main_location_et"
+        app:layout_constraintTop_toBottomOf="@id/main_location_sp"
         app:layout_constraintWidth_percent="0.8" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
