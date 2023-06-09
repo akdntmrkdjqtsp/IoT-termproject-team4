@@ -392,7 +392,7 @@ public class ResultActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         // 액티비티가 종료될 때 작업 중지
-        stopTask();
+        // stopTask();
         stopSensor();
     }
 }
