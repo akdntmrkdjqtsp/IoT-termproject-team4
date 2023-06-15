@@ -295,7 +295,7 @@ public class ResultActivity extends AppCompatActivity {
 
                             // 1초 후에 다시 API를 호출
                             Handler handler = new Handler(Looper.getMainLooper());
-                            handler.postDelayed(scanWiFiNetworks(), 2000);
+                            handler.postDelayed(scanWiFiNetworks(), 1500);
                         }
 
                     } catch (JSONException | IOException e) {
@@ -303,7 +303,7 @@ public class ResultActivity extends AppCompatActivity {
 
                         // 1초 후에 다시 API를 호출
                         Handler handler = new Handler(Looper.getMainLooper());
-                        handler.postDelayed(scanWiFiNetworks(), 2000);
+                        handler.postDelayed(scanWiFiNetworks(), 1500);
                     }
                 }
             }
@@ -317,14 +317,14 @@ public class ResultActivity extends AppCompatActivity {
 
                 // 1초 후에 다시 API를 호출, 스레드 풀 크기 줄이기(해야함)
                 Handler handler = new Handler(Looper.getMainLooper());
-                handler.postDelayed(scanWiFiNetworks(), 2000);
+                handler.postDelayed(scanWiFiNetworks(), 1500);
             }
         });
     }
 
     private String getClassroom(String startPt) {
         if(startPt.length() == 3) startPt += "호";  // 일반 강의실의 경우 ~호 형태로 변환
-        else if(startPt.equals("indoor")) startPt = startPt.replace("-indoor", "호");
+        else if(startPt.contains("indoor")) startPt = startPt.replace("-indoor", "호");
         else if(startPt.contains("hall")) startPt = startPt.replace("hall", "-A");
         else if(startPt.equals("artechne-4")) startPt = "4층 아르테크네";
         else if(startPt.equals("artechne-5")) startPt = "5층 아르테크네";
