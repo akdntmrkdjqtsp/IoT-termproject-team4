@@ -1,18 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="classroom">
-        <item>405호</item>
-        <item>412호</item>
-        <item>418호</item>
-        <item>433호</item>
+        <item>406호</item>
+        <item>407호</item>
+        <item>413호</item>
+        <item>414호</item>
         <item>4층 아르테크네</item>
-        <item>505호</item>
-        <item>512호</item>
-        <item>520호</item>
-        <item>531호</item>
-        <item>5층 아르테크네</item>
+        <item>4층 휴게 공간</item>
+        <item>4층 엘리베이터(동)</item>
+        <item>4층 엘리베이터(중)</item>
+        <item>4층 계단</item>
+        <item>506호</item>
+        <item>508호</item>
+        <item>510호</item>
+        <item>513호</item>
+        <item>큐브 입구 1</item>
+        <item>큐브 입구 2</item>
+        <item>5층 엘리베이터 1(동)</item>
+        <item>5층 엘리베이터 2(중)</item>
+        <item>5층 엘리베이터 3(서)</item>
     </string-array>
 </resources>
-
-<!--405 412 433 418 4층 아르테크네
-505 512 531 520 5층 아르테크네 -->
