@@ -205,7 +205,7 @@ public class ResultActivity extends AppCompatActivity {
                 if(String.valueOf(pitch).equals("-0.0")) pitch = 0;
                 else if(String.valueOf(pitch).equals("0.0")) pitch = 180;
 
-                Log.d("방위각 :", String.valueOf(pitch));
+                // Log.d("방위각 :", String.valueOf(pitch));
 
                 pitch = pitch < 0 ? (pitch + 360) : pitch;
                 setArrowImg(360 - (pitch - newDirection));
@@ -301,7 +301,7 @@ public class ResultActivity extends AppCompatActivity {
 
                     // 1초 후에 다시 API를 호출
                     Handler handler = new Handler(Looper.getMainLooper());
-                    handler.postDelayed(scanWiFiNetworks(), 1000);
+                    handler.postDelayed(scanWiFiNetworks(), 2000);
                 }
             }
 
