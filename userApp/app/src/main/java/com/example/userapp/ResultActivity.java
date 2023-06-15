@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import java.util.concurrent.TimeUnit;
@@ -48,7 +49,9 @@ public class ResultActivity extends AppCompatActivity {
 
     private SensorManager sensorManager;
     private SensorListener sensorListener;
-    private ScheduledExecutorService scheduledExecutor;
+
+    private boolean active = true;
+
     private TextView start;
     private TextView current;
     private TextView end;
@@ -71,9 +74,10 @@ public class ResultActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_result);
 
+        active = true;
+
         // 와이파이 측정
         wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-
 
         // 목적지 입력
         start = findViewById(R.id.result_start_real_tv);
@@ -84,7 +88,6 @@ public class ResultActivity extends AppCompatActivity {
         destinationAPI = getIntent().getStringExtra("destinationAPI");
 
         end.setText(destination);
-
 
         // 화면 기본 세팅
         nextArrow = findViewById(R.id.result_next_arrow_iv);
@@ -105,6 +108,8 @@ public class ResultActivity extends AppCompatActivity {
         TextView endBtn = findViewById(R.id.result_end_btn);
         endBtn.setOnClickListener(view-> {
             stopSensor();
+            active = false;
+
             finish();
         });
 
@@ -145,13 +150,13 @@ public class ResultActivity extends AppCompatActivity {
                 if(ssid.contains("GC_free_WiFi") || ssid.contains("eduroam")){
                     data.addProperty(bssid, rssi);
                     Log.d(TAG, "SSID: " + ssid + ", BSSID: " + bssid + ", rssi: " + rssi);
-
-                    sendLocationDataToServer(data);
                 }
 
                 // data.addProperty(bssid, rssi);
                 // 414 : SSID: AndroidWifi, BSSID: 00:13:10:85:fe:01, rssi: 100
             }
+
+            sendLocationDataToServer(data);
         }
 
         return null;
@@ -188,7 +193,6 @@ public class ResultActivity extends AppCompatActivity {
             if(isGetAcc && isGetMag && isGetGyro) {
                 float[] R = new float[9];
                 float[] I = new float[9];
-                float[] G = new float[9];
 
                 // 행렬 계산
                 SensorManager.getRotationMatrix(R, I, accValue, magValue);
@@ -205,7 +209,7 @@ public class ResultActivity extends AppCompatActivity {
                 if(String.valueOf(pitch).equals("-0.0")) pitch = 0;
                 else if(String.valueOf(pitch).equals("0.0")) pitch = 180;
 
-                Log.d("방위각 :", String.valueOf(pitch));
+                // Log.d("방위각 :", String.valueOf(pitch));
 
                 pitch = pitch < 0 ? (pitch + 360) : pitch;
                 setArrowImg(360 - (pitch - newDirection));
@@ -223,105 +227,130 @@ public class ResultActivity extends AppCompatActivity {
         JsonObject requestBody = new JsonObject();
         requestBody.add("signals", data);
 
-        // 서비스 인터페이스 생성
         API apiService = NetworkModule.getRestrofit().create(API.class);
+        // 서비스 인터페이스 생성
         apiService.sendLocationData(destinationAPI, requestBody).enqueue(new Callback<ResponseBody>() {
             @SuppressLint("SetTextI18n")
             @Override
             public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
                 // 요청이 성공적으로 전송된 경우
-                if(response.isSuccessful() && response.body() != null) {
-                    try {
-                        JSONObject object = new JSONObject(response.body().string());
 
-                        /*
-                        {
-                          "start": "409",
-                          "end": "426",
-                          "path": [
-                            {
-                              "cardinal_direction": "20",
-                              "distance": "20"
-                            },
-                            {
-                              "cardinal_direction": "230",
-                              "distance": "83"
+                if(response.body() != null) {
+                    if(response.isSuccessful()) {
+                        try {
+                            JSONObject object = new JSONObject(response.body().string());
+
+                            Log.d("FIND-SUC", object.toString());
+
+                            String startPt = object.getString("start");
+                            String endPt =  object.getString("end");
+
+                            Log.d("start, end", startPt + " " + endPt);
+
+                            startPt = getClassroom(startPt);
+
+                            if(first) {
+                                start.setText(startPt);
+                                first = false;
                             }
-                          ]
-                        }
-                         */
 
-                        Log.d("FIND-SUC", object.toString());
+                            current.setText(startPt);
 
-                        String startPt = object.getString("start");
-                        String endPt =  object.getString("end");
+                            if(start.equals(end)) {
+                                remain.setText("목적지에 도착했습니다.");
+                                stopSensor();
+                            } else {
+                                JSONArray jsonArray = object.getJSONArray("path");
+                                if(jsonArray.length() == 0) {
+                                    arrow.setVisibility(View.GONE);
+                                    remain.setVisibility(View.GONE);
 
-                        Log.d("start, end", startPt + " " + endPt);
+                                    TextView warning = findViewById(R.id.result_warning_tv);
+                                    warning.setVisibility(View.VISIBLE);
+                                } else {
+                                    for(int i = 0; i < jsonArray.length(); i++) {
+                                        arrow.setVisibility(View.VISIBLE);
+                                        remain.setVisibility(View.VISIBLE);
 
-                        startPt = getClassroom(startPt);
+                                        TextView warning = findViewById(R.id.result_warning_tv);
+                                        warning.setVisibility(View.GONE);
 
-                        if(first) {
-                            start.setText(startPt);
-                            first = false;
-                        }
+                                        //인덱스 번호로 접근해서 가져온다.
+                                        JSONObject cur = (JSONObject) jsonArray.get(i);
 
-                        current.setText(startPt);
+                                        int direction = cur.getInt("cardinal_direction");
+                                        int distance = cur.getInt("distance");
 
-                        JSONArray jsonArray = object.getJSONArray("path");
+                                        System.out.println("----- " + i + "번째 인덱스 값 -----");
+                                        System.out.println("방향 : " + direction);
+                                        System.out.println("거리 : " + distance);
 
-                        if(jsonArray.length() == 0) {
-                            remain.setText("목적지에 도착했습니다.");
-                            stopSensor();
-                        }
+                                        if (i == 0) {
+                                            remain.setText("남은 거리 : " + distance + "m");
+                                            newDirection = direction;
+                                            setArrowImg(direction);
+                                        } else if (i == 1) {
+                                            nextRemain.setText("남은 거리 : \n" + distance + "m");
+                                            nextDirection = direction;
+                                            setSmallArrowImg(direction);
+                                        }
+                                    }
+                                }
+                            }
 
-                        for(int i = 0; i < jsonArray.length(); i++){
-                            JSONObject cur = (JSONObject) jsonArray.get(i);//인덱스 번호로 접근해서 가져온다.
+                            if(active) {
+                                // 1초 후에 다시 API를 호출
+                                Handler handler = new Handler(Looper.getMainLooper());
+                                handler.postDelayed(scanWiFiNetworks(), 1500);
+                            }
 
-                            int direction = cur.getInt("cardinal_direction");
-                            int distance =  cur.getInt("distance");
+                        } catch (JSONException | IOException e) {
+                            System.out.println("API 연결에 실패했습니다.");
 
-                            System.out.println("----- "+i+"번째 인덱스 값 -----");
-                            System.out.println("방향 : " + direction);
-                            System.out.println("거리 : " + distance);
-
-                            if(i == 0) {
-                                remain.setText("남은 거리 : " + distance + "m");
-                                newDirection = direction;
-                                setArrowImg(direction);
-                            } else if(i == 1) {
-                                nextRemain.setText("남은 거리 : \n" + distance + "m");
-                                nextDirection = direction;
-                                setSmallArrowImg(direction);
+                            if(active) {
+                                // 1초 후에 다시 API를 호출
+                                Handler handler = new Handler(Looper.getMainLooper());
+                                handler.postDelayed(scanWiFiNetworks(), 1500);
                             }
                         }
-
-                    } catch (JSONException | IOException e) {
-                        System.out.println("API 연결에 실패했습니다.");
                     }
+                } else {
+                    if(response.errorBody() != null) {
+                        try {
+                            Log.d("FIND-FAIL", response.errorBody().string());
+                            String nowPt = response.errorBody().string();
 
-                    // 1초 후에 다시 API를 호출
-                    Handler handler = new Handler(Looper.getMainLooper());
-                    handler.postDelayed(scanWiFiNetworks(), 1000);
+                            Log.d("FIND-FAIL", nowPt);
+
+                            if(first) {
+                                start.setText(nowPt);
+                                first = false;
+                            }
+
+                            current.setText(nowPt);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
                 }
+
             }
 
             @Override
             public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
-                // 400이 나오면 현 위치를 유지
-
                 // 네트워크 오류 등으로 요청이 실패한 경우
-                Log.d("FAIL", t.getMessage());
-
-                // 1초 후에 다시 API를 호출, 스레드 풀 크기 줄이기(해야함)
-                Handler handler = new Handler(Looper.getMainLooper());
-                handler.postDelayed(scanWiFiNetworks(), 1000);
+                if(active) {
+                    // 1초 후에 다시 API를 호출
+                    Handler handler = new Handler(Looper.getMainLooper());
+                    handler.postDelayed(scanWiFiNetworks(), 1500);
+                }
             }
         });
     }
 
     private String getClassroom(String startPt) {
         if(startPt.length() == 3) startPt += "호";  // 일반 강의실의 경우 ~호 형태로 변환
-        else if(startPt.equals("indoor")) startPt = startPt.replace("-indoor", "호");
+        else if(startPt.contains("indoor")) startPt = startPt.replace("-indoor", "호");
         else if(startPt.contains("hall")) startPt = startPt.replace("hall", "-A");
         else if(startPt.equals("artechne-4")) startPt = "4층 아르테크네";
         else if(startPt.equals("artechne-5")) startPt = "5층 아르테크네";
