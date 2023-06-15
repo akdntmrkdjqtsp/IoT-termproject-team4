@@ -104,7 +104,6 @@ public class ResultActivity extends AppCompatActivity {
         // 안내 종료
         TextView endBtn = findViewById(R.id.result_end_btn);
         endBtn.setOnClickListener(view-> {
-            // stopTask();
             stopSensor();
             finish();
         });
@@ -116,40 +115,15 @@ public class ResultActivity extends AppCompatActivity {
     public void startSensor() {
         Sensor accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         Sensor magnetic = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+        Sensor gyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
 
         sensorManager.registerListener(sensorListener, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
         sensorManager.registerListener(sensorListener, magnetic, SensorManager.SENSOR_DELAY_NORMAL);
+        sensorManager.registerListener(sensorListener, gyroscope, SensorManager.SENSOR_DELAY_NORMAL);
     }
 
     public void stopSensor() {
         sensorManager.unregisterListener(sensorListener);
-    }
-
-    private void startTask() {
-        // 1초마다 작업 실행
-        long intervalMillis = 1000;
-        scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
-        scheduledExecutor.scheduleAtFixedRate(new Runnable() {
-            @Override
-            public void run() {
-                // 작업 실행
-                scanWiFiNetworks();
-            }
-        }, 0, intervalMillis, TimeUnit.MILLISECONDS);
-    }
-
-    private void stopTask() {
-        if (scheduledExecutor != null) {
-            scheduledExecutor.shutdown();
-            try {
-                if (!scheduledExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
-                    scheduledExecutor.shutdownNow();
-                }
-            } catch (InterruptedException e) {
-                scheduledExecutor.shutdownNow();
-            }
-            scheduledExecutor = null;
-        }
     }
 
     private Runnable scanWiFiNetworks() {
@@ -189,6 +163,7 @@ public class ResultActivity extends AppCompatActivity {
 
         boolean isGetAcc = false;
         boolean isGetMag = false;
+        boolean isGetGyro = false;
 
         @Override
         public void onSensorChanged(SensorEvent sensorEvent) {
@@ -204,11 +179,16 @@ public class ResultActivity extends AppCompatActivity {
                     System.arraycopy(sensorEvent.values, 0, magValue, 0, sensorEvent.values.length);
                     isGetMag = true;
                     break;
+
+                case Sensor.TYPE_GYROSCOPE:
+                    isGetGyro = true;
+                    break;
             }
 
-            if(isGetAcc && isGetMag) {
+            if(isGetAcc && isGetMag && isGetGyro) {
                 float[] R = new float[9];
                 float[] I = new float[9];
+                float[] G = new float[9];
 
                 // 행렬 계산
                 SensorManager.getRotationMatrix(R, I, accValue, magValue);
@@ -218,17 +198,17 @@ public class ResultActivity extends AppCompatActivity {
                 SensorManager.getOrientation(R, values);
 
                 // 방위값을 각도 단위로 변경
-                float azimuth = (float) Math.toDegrees(values[0]);  // 방위값
+                float azimuth = (float) Math.toDegrees(values[0]);  //
                 float pitch = (float) Math.toDegrees(values[1]);  // 좌우 기울기
                 float roll = (float) Math.toDegrees(values[2]);  // 앞뒤 기울기
 
-                if(String.valueOf(azimuth).equals("-0.0")) azimuth = 0;
-                else if(String.valueOf(azimuth).equals("0.0")) azimuth = 180;
+                if(String.valueOf(pitch).equals("-0.0")) pitch = 0;
+                else if(String.valueOf(pitch).equals("0.0")) pitch = 180;
 
-                // Log.d("방위각 :", String.valueOf(azimuth));
+                Log.d("방위각 :", String.valueOf(pitch));
 
-                azimuth = azimuth < 0 ? (azimuth + 360) : azimuth;
-                setArrowImg(360 - (azimuth - newDirection));
+                pitch = pitch < 0 ? (pitch + 360) : pitch;
+                setArrowImg(360 - (pitch - newDirection));
 
             }
         }
@@ -292,7 +272,6 @@ public class ResultActivity extends AppCompatActivity {
                         if(jsonArray.length() == 0) {
                             remain.setText("목적지에 도착했습니다.");
                             stopSensor();
-                            // stopTask();
                         }
 
                         for(int i = 0; i < jsonArray.length(); i++){
@@ -328,10 +307,12 @@ public class ResultActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
+                // 400이 나오면 현 위치를 유지
+
                 // 네트워크 오류 등으로 요청이 실패한 경우
                 Log.d("FAIL", t.getMessage());
 
-                // 1초 후에 다시 API를 호출
+                // 1초 후에 다시 API를 호출, 스레드 풀 크기 줄이기(해야함)
                 Handler handler = new Handler(Looper.getMainLooper());
                 handler.postDelayed(scanWiFiNetworks(), 1000);
             }
@@ -339,29 +320,17 @@ public class ResultActivity extends AppCompatActivity {
     }
 
     private String getClassroom(String startPt) {
-        /*
-        ['401', '402', '403', '404', '405', '405hall', '406', '407', '407A', '407hall', '408', '409', '410',
-        '411', '412', '413', '414', '415', '416', '417', '418', '419', '420',
-        '421', '422', '423', '424', '425', '426', '427', '428', '429', '430',
-        '431', '432', '433', '434', '435', '501', '502', '503', '504', '505', '505hall', '506', '507', '507A', '507hall', '508', '509', '510',
-        '511', '512', '513', '514', '515', '516', '517', '518', '519', '520',
-        '521', '522', '523', '524', '525', '526', '527', '528', '529', '530',
-        '531', '532',
-        'artechne-4', 'artechne-5',
-        'bathroom_a', 'bathroom_a-5', 'bathroom_b', 'bathroom_b-5', 'bathroom_c', 'bathroom_c-5',
-        'cube',
-        'elevator-1', 'elevator-2', 'elevator-3', 'elevator-4',
-        'stair-1', 'stair-2', 'stair-2-5', 'stair-3', 'stair-4', 'stair-5']
-         */
-
         if(startPt.length() == 3) startPt += "호";  // 일반 강의실의 경우 ~호 형태로 변환
+        else if(startPt.equals("indoor")) startPt = startPt.replace("-indoor", "호");
         else if(startPt.contains("hall")) startPt = startPt.replace("hall", "-A");
         else if(startPt.equals("artechne-4")) startPt = "4층 아르테크네";
         else if(startPt.equals("artechne-5")) startPt = "5층 아르테크네";
         else if(startPt.equals("cube")) startPt = "큐브";
         else if(startPt.contains("bathroom")) startPt = "화장실";
-        else if(startPt.contains("elevator")) startPt = "엘레베이터";
-        else if(startPt.contains("stair")) startPt = "계단";
+        else if(startPt.contains("elevator") && startPt.contains("4F")) startPt = "4층 엘리베이터";
+        else if(startPt.contains("elevator") && startPt.contains("5F")) startPt = "5층 엘리베이터";
+        else if(startPt.contains("stair") && startPt.contains("4F")) startPt = "4층 계단";
+        else if(startPt.contains("stair") && startPt.contains("5F")) startPt = "5층 계단";
 
         return startPt;
     }
@@ -392,7 +361,6 @@ public class ResultActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         // 액티비티가 종료될 때 작업 중지
-        // stopTask();
         stopSensor();
     }
 }
