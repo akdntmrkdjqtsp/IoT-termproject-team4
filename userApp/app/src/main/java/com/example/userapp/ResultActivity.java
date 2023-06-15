@@ -48,7 +48,7 @@ public class ResultActivity extends AppCompatActivity {
 
     private SensorManager sensorManager;
     private SensorListener sensorListener;
-    private ScheduledExecutorService scheduledExecutor;
+
     private TextView start;
     private TextView current;
     private TextView end;
@@ -145,13 +145,13 @@ public class ResultActivity extends AppCompatActivity {
                 if(ssid.contains("GC_free_WiFi") || ssid.contains("eduroam")){
                     data.addProperty(bssid, rssi);
                     Log.d(TAG, "SSID: " + ssid + ", BSSID: " + bssid + ", rssi: " + rssi);
-
-                    sendLocationDataToServer(data);
                 }
 
                 // data.addProperty(bssid, rssi);
                 // 414 : SSID: AndroidWifi, BSSID: 00:13:10:85:fe:01, rssi: 100
             }
+
+            sendLocationDataToServer(data);
         }
 
         return null;
@@ -188,7 +188,6 @@ public class ResultActivity extends AppCompatActivity {
             if(isGetAcc && isGetMag && isGetGyro) {
                 float[] R = new float[9];
                 float[] I = new float[9];
-                float[] G = new float[9];
 
                 // 행렬 계산
                 SensorManager.getRotationMatrix(R, I, accValue, magValue);
@@ -223,8 +222,8 @@ public class ResultActivity extends AppCompatActivity {
         JsonObject requestBody = new JsonObject();
         requestBody.add("signals", data);
 
-        // 서비스 인터페이스 생성
         API apiService = NetworkModule.getRestrofit().create(API.class);
+        // 서비스 인터페이스 생성
         apiService.sendLocationData(destinationAPI, requestBody).enqueue(new Callback<ResponseBody>() {
             @SuppressLint("SetTextI18n")
             @Override
@@ -272,36 +271,40 @@ public class ResultActivity extends AppCompatActivity {
                         if(jsonArray.length() == 0) {
                             remain.setText("목적지에 도착했습니다.");
                             stopSensor();
-                        }
+                        } else {
+                            for(int i = 0; i < jsonArray.length(); i++) {
+                                JSONObject cur = (JSONObject) jsonArray.get(i);//인덱스 번호로 접근해서 가져온다.
 
-                        for(int i = 0; i < jsonArray.length(); i++){
-                            JSONObject cur = (JSONObject) jsonArray.get(i);//인덱스 번호로 접근해서 가져온다.
+                                int direction = cur.getInt("cardinal_direction");
+                                int distance = cur.getInt("distance");
 
-                            int direction = cur.getInt("cardinal_direction");
-                            int distance =  cur.getInt("distance");
+                                System.out.println("----- " + i + "번째 인덱스 값 -----");
+                                System.out.println("방향 : " + direction);
+                                System.out.println("거리 : " + distance);
 
-                            System.out.println("----- "+i+"번째 인덱스 값 -----");
-                            System.out.println("방향 : " + direction);
-                            System.out.println("거리 : " + distance);
-
-                            if(i == 0) {
-                                remain.setText("남은 거리 : " + distance + "m");
-                                newDirection = direction;
-                                setArrowImg(direction);
-                            } else if(i == 1) {
-                                nextRemain.setText("남은 거리 : \n" + distance + "m");
-                                nextDirection = direction;
-                                setSmallArrowImg(direction);
+                                if (i == 0) {
+                                    remain.setText("남은 거리 : " + distance + "m");
+                                    newDirection = direction;
+                                    setArrowImg(direction);
+                                } else if (i == 1) {
+                                    nextRemain.setText("남은 거리 : \n" + distance + "m");
+                                    nextDirection = direction;
+                                    setSmallArrowImg(direction);
+                                }
                             }
+
+                            // 1초 후에 다시 API를 호출
+                            Handler handler = new Handler(Looper.getMainLooper());
+                            handler.postDelayed(scanWiFiNetworks(), 2000);
                         }
 
                     } catch (JSONException | IOException e) {
                         System.out.println("API 연결에 실패했습니다.");
-                    }
 
-                    // 1초 후에 다시 API를 호출
-                    Handler handler = new Handler(Looper.getMainLooper());
-                    handler.postDelayed(scanWiFiNetworks(), 2000);
+                        // 1초 후에 다시 API를 호출
+                        Handler handler = new Handler(Looper.getMainLooper());
+                        handler.postDelayed(scanWiFiNetworks(), 2000);
+                    }
                 }
             }
 
@@ -314,7 +317,7 @@ public class ResultActivity extends AppCompatActivity {
 
                 // 1초 후에 다시 API를 호출, 스레드 풀 크기 줄이기(해야함)
                 Handler handler = new Handler(Looper.getMainLooper());
-                handler.postDelayed(scanWiFiNetworks(), 1000);
+                handler.postDelayed(scanWiFiNetworks(), 2000);
             }
         });
     }
