@@ -11,4 +11,6 @@
     <string name="remain_distance">남은 거리 : </string>
     <string name="next_remain">다음 거리 : \n</string>
     <string name="end">안내 종료</string>
+    <string name="warning">층간 이동이 제한되어있습니다.</string>
+
 </resources>
